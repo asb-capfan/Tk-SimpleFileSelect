@@ -1,4 +1,4 @@
-Tk::SimpleFileSelect.pm, Version 0.62, installation.
+Tk::SimpleFileSelect.pm installation.
 
 System Requirements:
 
@@ -9,18 +9,18 @@ System Requirements:
 
 Installation:
 
-1.  Untar the Tk-SimpleFileselect-0.62 archive with the gunzip and 
+1.  Untar the Tk-SimpleFileselect-<version> archive with the gunzip and 
     tar commands:
 
-  # gzip -dc Tk-SimpleFileselect-0.62.tar.gz | tar xvf -
+  # gzip -dc Tk-SimpleFileselect-<version>.tar.gz | tar xvf -
  
    or, using GNU tar,
 
-  # tar zxvf Tk-SimpleFileselect-0.62.tar.gz
+  # tar zxvf Tk-SimpleFileselect-<version>.tar.gz
 
 2.  Change to the top-level subdirectory:
 
-  # cd Tk-SimpleFileSelect-0.62
+  # cd Tk-SimpleFileSelect-<version>
 
 3.  The top-level Makefile should work on any Unix or derivative
     system that has GNU make installed.  It uses the Perl ExtUtils 
@@ -48,5 +48,5 @@ Please refer to the file "Artistic" in this directory.
 
 Bugs:
 
-Please submit bugs to the author, rkiesling@mainmatter.com
+Please let the author, rkiesling@mainmatter.com, know if you find any bugs.
 
