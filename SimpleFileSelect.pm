@@ -1,5 +1,5 @@
 package SimpleFileSelect;
-my $RCSRevKey = '$Revision: 0.59 $';
+my $RCSRevKey = '$Revision: 0.60 $';
 $RCSRevKey =~ /Revision: (.*?) /;
 $VERSION=$1;
 use vars qw($VERSION @EXPORT_OK);
@@ -30,26 +30,18 @@ sub Accept_dir
 }
 
 sub Open {
-    my ($cw) = @_;
-    my ($file,$path,$sel);
-    $file = $cw -> Subwidget('file_entry') -> get;
-    my $l = $cw -> Subwidget('dir_list');
-    $path = $cw -> {'Configure'}{'-directory'};
-    if ( $l -> curselection ne '' ) {
-      $sel = $l -> get($l -> curselection);
-      if( $sel =~ /\.\./ ) {
-	$path =~ s/(.*)\/.*$/\1/;
-	$cw -> Accept_dir if( -d $path );
-	$cw -> directory( $path );
-      } elsif( -d "$path/$sel" or $sel =~/\.\./ ) {
-	$cw -> Accept_dir if( -d "$path/$sel" );
-	$cw -> directory( "$path/$sel" );
-      } else {
-	$cw -> {Selected} = "$path/$sel";
-      }
-    } elsif (defined $file and length($file)) {
-      $cw -> {Selected}  = "$path/$file";
+  my ($cw) = @_;
+  my ($entry,$path);
+  $entry = $cw -> Subwidget('file_entry') -> get;
+  $path = $cw -> {'Configure'}{'-directory'};
+  if (defined $entry and length($entry)) {
+    if ( -d "$path/$entry" ) {
+      $cw -> directory( "$path/$entry" );
+      $cw -> Accept_dir;
+    } else {
+      $cw -> {Selected} = "$path/$entry";
     }
+  }
 }
 
 sub Populate {
@@ -70,7 +62,7 @@ sub Populate {
         -textvariable => \$w->{Configure}{-initialfile} );
     $e->grid(-column => 2, -columnspan => 1, -padx => 5, -pady => 5,
 	     -row => 3, -sticky => 'e,w' );
-    $e->bind('<Return>' => [$w => 'validateFile', Ev(['get'])]);
+    $e->bind('<Return>' => [$w => 'Open', Ev(['getSelected'])]);
     my $lb = $w->Component( ScrlListbox    => 'dir_list',
         -scrollbars => 'se', -width => \$w -> {Configure}{-width},
 	-height => \$w -> {Configure}{-height} );
@@ -79,11 +71,11 @@ sub Populate {
     $lb->grid( -column => 2, -row => 1, -rowspan => 2, -padx => 5,
 	    -pady => 5, -sticky => 'nsew' );
     $lb->bind('<Double-Button-1>' => [$w => 'Open', Ev(['getSelected'])]);
+    $lb->bind('<Button-1>', sub {($w->{Configure}{-initialfile}=
+	    $lb->get($lb->curselection))&&($e->icursor( 'end' ))});
     $b = $w -> Button(-textvariable => \$w->{'Configure'}{'-acceptlabel'},
-		    -underline => 0,
-		    -command => [$w => 'Open', Ev(['getSelected']) ]);
-    $b->grid( -column => 1, -row => 1, -padx => 5, -pady => 5,
-	    -sticky => 'sew' );
+    -underline => 0,-command => [$w => 'Open', Ev(['getSelected']) ]);
+    $b->grid(-column=>1,-row=>1,-padx=>5,-pady=>5,-sticky=>'sew');
     $b = $w->Button( -text => 'Cancel', -underline => 0,
 		     -command => [ 'Cancel', $w ]);
     $b->grid( -column => 1, -row => 2, -padx => 5, -pady => 5,
@@ -404,9 +396,14 @@ on the Tk::FileSelect widget, but returns only a file name.
 It is the job of the calling program perform any operations on the
 files named in the SimpleFileSelect's return value.
 
+Clicking in the list box on a file or directory name selects
+it and inserts the selected item in the entry box.  Double clicking
+on a directory or entering it in the entry box changes to that
+directory.
+
 The Show() method causes the FileSelectWidget to wait until a
-file is selected in the Listbox or typed in the text entry
-widget, or the 'Close' button is clicked.
+file is selected in the Listbox, a file name is entered
+in the text entry widget, or the 'Close' button is clicked.
 
 The return value is the pathname of a file selected in the
 Listbox, or the fully qualified path name of a file given in the
@@ -414,7 +411,7 @@ text entry, or an empty string if no file name is specified.
 
 =head1 VERSION INFORMATION
 
-  $Revision: 0.59 $
+  $Revision: 0.60 $
 
 =head1 COPYRIGHT INFO
 
