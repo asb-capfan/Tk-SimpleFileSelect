@@ -1,5 +1,5 @@
 package SimpleFileSelect;
-my $RCSRevKey = '$Revision: 0.58 $';
+my $RCSRevKey = '$Revision: 0.59 $';
 $RCSRevKey =~ /Revision: (.*?) /;
 $VERSION=$1;
 use vars qw($VERSION @EXPORT_OK);
@@ -228,6 +228,7 @@ sub reread
 {
   my ($w) = @_;
   my $dir = $w->cget('-directory');
+  my ($f, $seen);
  if (defined $dir)
   {
    if (!defined $w->cget('-filter') or $w->cget('-filter') eq '')
@@ -242,16 +243,13 @@ sub reread
      my $file = $w->cget('-initialfile');
      my $seen = 0;
      my $accept = $w->cget('-accept');
-     foreach my $f (sort(readdir(DIR))) {
+     foreach $f (sort(readdir(DIR))) {
        next if ($f eq '.');
-       if( ! $w -> {Configure}{-dotfiles} ) {
-	 next if $f =~ /\.[^\.]/;
-       }
+       next if $f =~ /^\.[^\.]/ and ! $w -> {Configure}{-dotfiles} ;
        my $path = "$dir/$f";
        if (-d $path) {
 	 $dl->insert('end', $f.'/');
-       }
-       elsif( $w -> cget('-files')) {
+       } elsif( $w -> cget('-files')) {
 	 if (&{$w->{match}}($f)) {
 	   if (!defined($accept) || $accept->Call($path)) {
 	     $seen = $dl->index('end') if ($file && $f eq $file);
@@ -416,7 +414,7 @@ text entry, or an empty string if no file name is specified.
 
 =head1 VERSION INFORMATION
 
-  $Revision: 0.58 $
+  $Revision: 0.59 $
 
 =head1 COPYRIGHT INFO
 
