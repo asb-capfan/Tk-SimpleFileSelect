@@ -1,5 +1,5 @@
 package Tk::SimpleFileSelect;
-$VERSION=0.67;
+$VERSION=0.68;
 use vars qw($VERSION @EXPORT_OK);
 @EXPORT_OK = qw(glob_to_re);
 
@@ -15,13 +15,7 @@ Construct Tk::Widget 'SimpleFileSelect';
 sub Cancel {
   my ($cw) = @_;
   $cw -> withdraw;
-  return '';
-}
-
-sub Accept_dir {
- my ($cw,$new) = @_;
- my $dir  = $cw->cget('-directory');
- $cw->configure(-directory => "$dir/$new", -title => "$dir/$new" );
+  $cw -> {Selected} = '';
 }
 
 sub Open {
@@ -31,10 +25,10 @@ sub Open {
   $path = $cw -> {'Configure'}{'-directory'};
   if (defined $entry and length($entry)) {
     if ( -d "$path/$entry" ) {
-      $cw -> directory( "$path/$entry" );
-      $cw -> Accept_dir;
+	$cw -> directory( "$path/$entry" );
     } else {
-      $cw -> {Selected} = "$path/$entry";
+	$cw -> {Selected} = '';
+	$cw -> {Selected} = "$path/$entry";
     }
   }
 }
@@ -95,6 +89,7 @@ sub Populate {
     $b->grid( -column => 1, -row => 2, -padx => 5, -pady => 5,
 	    -sticky => 'new' );
     $w -> bind( '<Alt-c>', [$w => 'Cancel', $w]);
+    $w -> bind( '<Escape>', [$w => 'Cancel', $w]);
     $w -> Subwidget('file_entry') -> focus;
     $w -> eventAdd( '<<Accept>>', '<Alt-a>');
     $w -> bind('<<Accept>>', [$w => 'Open', Ev(['getSelected']) ]);
@@ -249,6 +244,7 @@ sub Error {
 
 sub Show {
     my ($cw,@args) = @_;
+    $cw -> Popup;
     my $accel = lc(substr $cw->cget('-acceptlabel'),0,1);
     $cw -> eventAdd('<<Accept>>', "\<Alt-$accel\>");
     $cw -> waitVariable(\$cw->{Selected});
@@ -263,14 +259,14 @@ __END__
 
 =head1 NAME
 
-  SimpleFileSelect - Easy-to-Use File Selection Widget
+  Tk::SimpleFileSelect - Easy to Use File Selection Widget
 
 =head1 SYNOPSIS
 
   use Tk::SimpleFileSelect;
 
   my $fs = $mw -> SimpleFileSelect();
-  my $file = $fs -> Show();
+  my $file = $fs -> Show();          # Returns selected file's path name.
 
 =head2 Options
 
@@ -278,23 +274,23 @@ __END__
 
 =item -font
 
-Name of the font to display in the directory list and file
-name entry.  The default is "*-helvetica-medium-r-*-*-12-*."
+Font to display in the directory list and file name entry.  The
+default is "*-helvetica-medium-r-*-*-12-*."
 
 =item -width
 
-Width in character columns of the directory listbox.  The default is
-30.
+Width directory listing in average width units of the widget font.
+The default is 30.
 
 =item -height
 
-Height in lines of the directory listbox.  The default is 14.
+Height in lines of the directory listing.  The default is 14.
 
 =item -directory
 
 =item -initialdir
 
-Path name of initial directory to display.  The default is "."
+Name of initial directory to display.  The default is '.'
 (current directory).
 
 =item -files
@@ -304,14 +300,14 @@ is 1 (display files).
 
 =item -dotfiles
 
-If non-zero, display normally hidden files that begin with ".".
-The default is 0 (don't display hidden files).
+If non-zero, display files that begin with '.'.  The default is 0.
+(Don't display hidden files.)
 
 =item -acceptlabel
 
-Text label of the "Accept" button. Defaults to "Accept," naturally.
-The first character is underlined to correspond with an Alt-
-accelerator constructed with the first letter of the label.
+Alternate text of the, "Accept," Button.  The first character is
+underlined to correspond with an Alt- accelerator constructed from the
+first letter of the label.
 
 =item -filter
 
@@ -320,45 +316,51 @@ Display only files matching this pattern.  The default is
 
 =item -initialtext
 
-The text to appear in the entry box when the widget is opened.
+Text to appear in the entry box when the widget is opened.
 
 =head1 DESCRIPTION
 
-Tk::SimpleFileSelect is an easy-to-use file selection widget based on
-Tk::FileSelect.  Unlike a FileSelect widget, it does not attempt to
-verify that a file exists.  A SimpleFileSelect Dialog returns whatever
-text is entered or selected, along with the complete pathname.  It is
-the job of the calling program perform any operations or validation of
-filenames.
+Tk::SimpleFileSelect is an easy to use file selection widget based on
+Tk::FileSelect.  Unlike a Tk::FileSelect widget, Tk::SimpleFileSelect
+does not attempt to verify that a file exists.  A Tk::SimpleFileSelect
+dialog returns the complete pathname of the selected file.  The
+calling program is responsible for file validation and operations.
 
-Clicking in the list box on a file or directory name selects
-it and inserts the selected item in the entry box.  Double clicking
-on a directory or entering it in the entry box changes to that
-directory.
+Clicking on an item in the List box selects the item and displays the
+text in the Entry box.  Double clicking on a directory or entering its
+name in the Entry box changes to that directory.
 
-The Show() method causes the FileSelectWidget to wait until a
-file is selected in the Listbox, a file name is entered
-in the text entry widget, or the "Cancel" button is clicked.
+Pressing Escape, Alt-C, or clicking the Cancel button closes the 
+dialog and returns an empty string.
 
-The return value is the pathname of a file selected in the Listbox, or
-the path of the filename in the text entry, or an empty string if no
-file name is specified.
+The Show() method causes the Tk::SimpleFileSelect to wait until a
+file is selected in the List box, a file name is entered
+in the text entry widget, or the, "Cancel," button is clicked.
+
+Closing the dialog withdraws its window from the display.  The widget
+must be deleted explicitly.  The Show() method can open a
+Tk::SimpleFileSelect object that has already been created.
+
+The return value of Show() is the pathname of a file selected in the
+List box, or the path of the filename in the text entry, or an empty
+string.
 
 =head1 ADVERTISED SUBWIDGETS
 
 None.
 
-=head1 VERSION INFORMATION
+=head1 COPYRIGHT
 
-  $Id: SimpleFileSelect.pm,v 0.67 2002/08/25 18:57:06 kiesling Exp $
+Release 0.68.
 
-=head1 COPYRIGHT INFO
+$Id: SimpleFileSelect.pm,v 1.5 2004/02/28 19:27:09 kiesling Exp $
 
-Tk::SimpleFileSelect is derived from the Tk::FileSelect widget
-in the Perl/Tk library. It is freely distributable and modifiable
-under the same conditions as Perl. Please refer to the file
-"Artistic" in the distribution archive.
+Copyright © 2001-2004 Robert Kiesling, rkies@cpan.org.
 
-Written by Robert Allan Kiesling <rkiesling@earthlink.net>.
+Licensed under the same terms as Perl. Refer to the file, "Artistic."
+
+=head1 SEE ALSO
+
+Tk(1), perl(1).
 
 =cut
