@@ -1,5 +1,5 @@
 package SimpleFileSelect;
-my $RCSRevKey = '$Revision: 0.56 $';
+my $RCSRevKey = '$Revision: 0.58 $';
 $RCSRevKey =~ /Revision: (.*?) /;
 $VERSION=$1;
 use vars qw($VERSION @EXPORT_OK);
@@ -100,6 +100,7 @@ sub Populate {
         -directory        => [ 'METHOD', undef, undef, '.' ],
         -initialdir       => '-directory',
         -files            => [ 'PASSIVE', undef,undef,1 ],
+        -dotfiles         => [ 'PASSIVE', undef,undef,0 ],
         -initialfile      => [ 'PASSIVE', undef, undef, '' ],
         -filter           => [ 'METHOD',  undef, undef, undef ],
         '-accept'         => [ 'CALLBACK',undef,undef, undef ],
@@ -243,6 +244,9 @@ sub reread
      my $accept = $w->cget('-accept');
      foreach my $f (sort(readdir(DIR))) {
        next if ($f eq '.');
+       if( ! $w -> {Configure}{-dotfiles} ) {
+	 next if $f =~ /\.[^\.]/;
+       }
        my $path = "$dir/$f";
        if (-d $path) {
 	 $dl->insert('end', $f.'/');
@@ -372,7 +376,12 @@ Path name of initial directory to display.  The default is '.'
 If non-zero, display files as well as directories.  The default
 is 1 (display files).
 
-=item -acceptlable
+=item -dotfiles
+
+If non-zero, display normally hidden files that begin with '.'.
+The default is 0 (don't display hidden files).
+
+=item -acceptlabel
 
 Text to display in the 'Accept' button to accept a file or
 directory selection. Defaults to 'Accept'.  The first character
@@ -407,7 +416,7 @@ text entry, or an empty string if no file name is specified.
 
 =head1 VERSION INFORMATION
 
-  $Revision: 0.56 $
+  $Revision: 0.58 $
 
 =head1 COPYRIGHT INFO
 
