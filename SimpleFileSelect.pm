@@ -1,7 +1,7 @@
-package SimpleFileSelect;
-my $RCSRevKey = '$Revision: 0.60 $';
+package Tk::SimpleFileSelect;
+my $RCSRevKey = '$Revision: 0.61 $';
 $RCSRevKey =~ /Revision: (.*?) /;
-$VERSION=$1;
+$VERSION=0.61;
 use vars qw($VERSION @EXPORT_OK);
 @EXPORT_OK = qw(glob_to_re);
 
