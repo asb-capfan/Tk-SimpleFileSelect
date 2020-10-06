@@ -47,26 +47,28 @@ sub Populate {
     $w->SUPER::Populate($args);
 
     $w->ConfigSpecs(
-        -font             => ['CHILDREN',undef,undef,'*-helvetica-medium-r-*-*-12-*'],
-        -width            => [ ['dir_list'], undef, undef, 30 ],
-        -height           => [ ['dir_list'], undef, undef, 14 ],
-        -directory        => [ 'METHOD', undef, undef, '.' ],
-        -initialdir       => '-directory',
-        -files            => [ 'PASSIVE', undef,undef,1 ],
-        -selectedfile     => [ 'PASSIVE', undef,undef,''],
-        -dotfiles         => [ 'PASSIVE', undef,undef,0 ],
-        -filter           => [ 'METHOD',  undef, undef, undef ],
-        '-accept'         => [ 'CALLBACK',undef,undef, undef ],
-        -create           => [ 'PASSIVE', undef, undef, 0 ],
-        -acceptlabel      => [ 'PASSIVE', undef, undef, 'Accept' ],
-        -initialtext      => [ 'PASSIVE', undef, undef, '' ],
-        DEFAULT           => [ 'dir_list' ],
+        '-font'             => ['CHILDREN',undef,undef,'*-helvetica-medium-r-*-*-12-*'],
+        '-width'            => [ ['dir_list'], undef, undef, 30 ],
+        '-height'           => [ ['dir_list'], undef, undef, 14 ],
+        '-directory'        => [ 'METHOD', undef, undef, '.' ],
+        '-initialdir'       => '-directory',
+        '-files'            => [ 'PASSIVE', undef,undef,1 ],
+        '-selectedfile'     => [ 'PASSIVE', undef,undef,''],
+        '-dotfiles'         => [ 'PASSIVE', undef,undef,0 ],
+        '-filter'           => [ 'METHOD',  undef, undef, undef ],
+        '-accept'           => [ 'CALLBACK',undef,undef, undef ],
+        '-create'           => [ 'PASSIVE', undef, undef, 0 ],
+        '-acceptlabel'      => [ 'PASSIVE', undef, undef, 'Accept' ],
+        '-initialtext'      => [ 'PASSIVE', undef, undef, '' ],
+        'DEFAULT'           => [ 'dir_list' ],
     );
 
     $w->protocol('WM_DELETE_WINDOW' => ['Cancel', $w ]);
     $w->{'reread'} = 0;
+    
     my $l = $w->Component( Label => 'entry_label',-text => 'File Name: ');
     $l->grid( -column => 1, -row => 3, -padx => 5, -pady => 5 );
+    
     my $e = $w->Component(Entry => 'file_entry', -textvariable=>\$w->{Configure}{-initialtext});
     $e->grid(-column => 2, -columnspan => 1, -padx => 5, -pady => 5, -row => 3, -sticky => 'e,w' );
     $e->bind('<Return>' => [$w => 'Open', Ev(['getSelected'])]);
@@ -80,24 +82,22 @@ sub Populate {
     
     $lb->Subwidget('yscrollbar')->configure(-width=>10);
     $lb->Subwidget('xscrollbar')->configure(-width=>10);
-    $lb->grid( -column => 2, -row => 1, -rowspan => 2, -padx => 5,
-	    -pady => 5, -sticky => 'nsew' );
+    $lb->grid(-column => 2, -row => 1, -rowspan => 2, -padx => 5, -pady => 5, -sticky => 'nsew');
     $lb->bind('<Double-Button-1>' => [$w => 'Open', Ev(['getSelected'])]);
-    $lb->bind('<Button-1>', sub {($w->{Configure}{-initialtext}=
-           $lb->get($lb->curselection))});
-    $b = $w->Button(-textvariable => \$w->{'Configure'}{'-acceptlabel'},
-    -underline => 0,-command => [$w => 'Open', Ev(['getSelected']) ]);
+    $lb->bind('<Button-1>', sub { ($w->{Configure}{-initialtext}=$lb->get($lb->curselection)) });
+    
+    my $b = $w->Button(-textvariable => \$w->{'Configure'}{'-acceptlabel'}, -underline => 0,-command => [$w => 'Open', Ev(['getSelected']) ]);
     $b->grid(-column=>1,-row=>1,-padx=>5,-pady=>5,-sticky=>'sew');
-    $b = $w->Button( -text => 'Cancel', -underline => 0,
-		     -command => [ 'Cancel', $w ]);
-    $b->grid( -column => 1, -row => 2, -padx => 5, -pady => 5,
-	    -sticky => 'new' );
+    $b = $w->Button( -text => 'Cancel', -underline => 0, -command => [ 'Cancel', $w ]);
+    $b->grid( -column => 1, -row => 2, -padx => 5, -pady => 5, -sticky => 'new' );
+    
     $w->bind( '<Alt-c>', [$w => 'Cancel', $w]);
     $w->bind( '<Escape>', [$w => 'Cancel', $w]);
     $w->Subwidget('file_entry')->focus;
     $w->eventAdd( '<<Accept>>', '<Alt-a>');
     $w->bind('<<Accept>>', [$w => 'Open', Ev(['getSelected']) ]);
     $w->Delegates(DEFAULT => 'dir_list');
+    
     return $w;
 }
 
@@ -120,19 +120,24 @@ sub glob_to_re {
 
 sub filter {
     my ($cw,$val) = @_;
+    
     my $var = \$cw->{Configure}{'-filter'};
+    
     if (@_ > 1 || !defined($$var)) {
-	$val = '*' unless defined $val;
-	$$var = $val;
-	$cw->{'match'} = glob_to_re($val)  unless defined $cw->{'match'};
-	unless ($cw->{'reread'}++) {
-	    $cw->Busy;
-	    if( ( $cw->cget( '-connected' ) ) =~ /1/ ) {
-		$cw->afterIdle(['rereadRemote',$cw,$cw->cget('-directory')])
-		} else {
-		    $cw->afterIdle(['reread',$cw,$cw->cget('-directory')]);
-		}
-	}
+        
+        $val = '*' unless defined $val;
+        $$var = $val;
+        $cw->{'match'} = glob_to_re($val)  unless defined $cw->{'match'};
+        
+        unless ($cw->{'reread'}++) {
+            $cw->Busy;
+            if( ( $cw->cget( '-connected' ) ) =~ /1/ ) {
+                $cw->afterIdle(['rereadRemote',$cw,$cw->cget('-directory')])
+            } else {
+                $cw->afterIdle(['reread',$cw,$cw->cget('-directory')]);
+            }
+        }
+        
     }
     return $$var;
 }
@@ -140,51 +145,60 @@ sub filter {
 sub defaultextension {
     my ($cw,$val) = @_;
     if (@_ > 1) {
-	$val = ".$val" if ($val !~ /^\./);
-	$cw->filter("*$val");
+        $val = ".$val" if ($val !~ /^\./);
+        $cw->filter("*$val");
     } else {
-	$val = $cw->filter;
-	my ($ext) = $val =~ /(\.[^\.]*)$/;
-	return $ext;
+        $val = $cw->filter;
+        my ($ext) = $val =~ /(\.[^\.]*)$/;
+        return $ext;
     }
 }
 
 sub directory {
     my ($cw,$dir) = @_;
+    
     my $var = \$cw->{Configure}{'-directory'};
+    
     if (@_ > 1 && defined $dir) {
-	if (substr($dir,0,1) eq '~') {
-	    if (substr($dir,1,1) eq '/') {
-		$dir = $ENV{'HOME'} . substr($dir,1);
-	    } else {
-		my ($uid,$rest) = ($dir =~ m#^~([^/]+)(/.*$)#);
-		$dir = (getpwnam($uid))[7] . $rest;
-	    }
-	}
-	$dir =~ s#([^/\\])[\\/]+$#$1#;
-	if (-d $dir) {
-	    unless (Tk::tainting()) {
-		my $pwd = Cwd::getcwd();
-		if (chdir( (defined($dir) ? $dir : '') ) ) {
-		    my $new = Cwd::getcwd();
-		    if ($new) {
-			$dir = $new;
-		    } else {
-			carp "Cannot getcwd in '$dir'";
-		    }
-		    chdir($pwd) || carp "Cannot chdir($pwd) : $!";
-		    $cw->{Configure}{'-directory'} = $dir;
-		    $cw->configure(-title=>$dir);
-		} else {
-		    $cw->BackTrace("Cannot chdir($dir) :$!");
-		}
-	    }
-	    $$var = $dir;
-	    unless ($cw->{'reread'}++) {
-		$cw->Busy;
-		$cw->afterIdle(['reread',$cw]);
-	    }
-	}
+        
+        if (substr($dir,0,1) eq '~') {
+            if (substr($dir,1,1) eq '/') {
+                $dir = $ENV{'HOME'} . substr($dir,1);
+            } else {
+                my ($uid,$rest) = ($dir =~ m#^~([^/]+)(/.*$)#);
+                $dir = (getpwnam($uid))[7] . $rest;
+            }
+        }
+        
+        $dir =~ s#([^/\\])[\\/]+$#$1#;
+        
+        if (-d $dir) {
+            unless (Tk::tainting()) {
+                
+                my $pwd = Cwd::getcwd();
+                if (chdir( (defined($dir) ? $dir : '') ) ) {
+                    my $new = Cwd::getcwd();
+                    if ($new) {
+                        $dir = $new;
+                    } else {
+                        carp "Cannot getcwd in '$dir'";
+                    }
+                    chdir($pwd) || carp "Cannot chdir($pwd) : $!";
+                    $cw->{Configure}{'-directory'} = $dir;
+                    $cw->configure(-title=>$dir);
+                } else {
+                    $cw->BackTrace("Cannot chdir($dir) :$!");
+                }
+                
+            }
+            
+            $$var = $dir;
+            unless ($cw->{'reread'}++) {
+                $cw->Busy;
+                $cw->afterIdle(['reread',$cw]);
+            }
+        }
+        
     }
     return $$var;
 }
@@ -193,48 +207,55 @@ sub directory {
 
 sub reread {
     my ($w) = @_;
+    
     my $dir = $w->cget('-directory');
-    my ($f, $seen);
+
     if (defined $dir) {
-	if (!defined $w->cget('-filter') or $w->cget('-filter') eq '') {
-	    $w->configure('-filter', '*');
-	}
-	my $dl = $w->Subwidget('dir_list');
-	$dl->delete(0, 'end');
-	local *DIR;
-	my $h;
-	if (opendir(DIR, $dir)) {
-	    my $file = $w->cget('-selectedfile');
-	    my $seen = 0;
-	    my $accept = $w->cget('-accept');
-	    foreach $f (sort(readdir(DIR))) {
-		next if ($f eq '.');
-		next if $f =~ /^\.[^\.]/ and ! $w->{Configure}{-dotfiles} ;
-		my $path = "$dir/$f";
-		if (-d $path) {
-		    $dl->insert('end', $f.'/');
-		} elsif ($w->cget('-files')) {
-		    if (&{$w->{match}}($f)) {
-			if (!defined($accept) || $accept->Call($path)) {
-			    $seen = $dl->index('end') 
-				if ($file && $f eq $file);
-			    $dl->insert('end', $f);
-			}
-		    }
-		}
-	    }
-	    closedir(DIR);
-	    if ($seen) {
-		$dl->selectionSet($seen);
-		$dl->see($seen);
-	    } else {
-		$w->configure(-selectedfile => '') 
-		    unless $w->cget('-create');
-	    }
-	}
-	$w->{DirectoryString} = $dir . '/' . $w->cget('-filter');
-	$w->{'reread'} = 0;
-	$w->Unbusy;
+        if (!defined $w->cget('-filter') or $w->cget('-filter') eq '') {
+            $w->configure('-filter', '*');
+        }
+        
+        my $dl = $w->Subwidget('dir_list');
+        $dl->delete(0, 'end');
+        
+        local *DIR;
+        my $h;
+        if (opendir(DIR, $dir)) {
+            my $file = $w->cget('-selectedfile');
+            my $seen = 0;
+            my $accept = $w->cget('-accept');
+            
+            foreach my $f (sort(readdir(DIR))) {
+                next if ($f eq '.');
+                next if $f =~ /^\.[^\.]/ and ! $w->{Configure}{-dotfiles} ;
+                my $path = "$dir/$f";
+                if (-d $path) {
+                    $dl->insert('end', $f.'/');
+                } elsif ($w->cget('-files')) {
+                    if (&{$w->{match}}($f)) {
+                        if (!defined($accept) || $accept->Call($path)) {
+                            $seen = $dl->index('end') 
+                            if ($file && $f eq $file);
+                            $dl->insert('end', $f);
+                        }
+                    }
+                }
+            }
+            
+            closedir(DIR);
+            
+            if ($seen) {
+                $dl->selectionSet($seen);
+                $dl->see($seen);
+            } else {
+                $w->configure(-selectedfile => '') 
+                unless $w->cget('-create');
+            }
+        }
+        
+        $w->{DirectoryString} = $dir . '/' . $w->cget('-filter');
+        $w->{'reread'} = 0;
+        $w->Unbusy;
     }
 }
 
