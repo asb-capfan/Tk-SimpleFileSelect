@@ -3,5 +3,5 @@ WriteMakefile(
     ABSTRACT => "Simple file selection dialog.",
     AUTHOR => "rkiesling\@mainmatter.com <Robert Kiesling>" ,
     NAME => 'Tk::SimpleFileSelect',
-    VERSION_FROM => 'SimpleFileSelect.pm',
+    VERSION_FROM => 'lib/Tk/SimpleFileSelect.pm',
 );
