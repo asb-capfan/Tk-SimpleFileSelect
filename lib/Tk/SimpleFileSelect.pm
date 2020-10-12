@@ -15,7 +15,7 @@ use Tk::Toplevel;
 use Tk::LabEntry;
 use Cwd;
 
-our $VERSION = 0.69;
+our $VERSION = 0.70;
 our @EXPORT_OK = qw(glob_to_re);
 
 Construct Tk::Widget 'SimpleFileSelect';
@@ -381,7 +381,9 @@ None.
 
 Release 0.69.
 
-Copyright © 2001-2004 Robert Kiesling, rkies@cpan.org.
+Copyright © 2001-2020 Robert Kiesling, rkies@cpan.org.
+
+Alexander Becker has served as a co-maintainer since version 0.69.
 
 Licensed under the same terms as Perl. Refer to the file, "Artistic."
 
